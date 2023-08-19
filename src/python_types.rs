@@ -1,8 +1,3 @@
-use std::collections::HashMap;
-
-use convert_case::{Case, Casing};
-use itertools::Itertools;
-
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) enum PythonDataType {
     String,
@@ -69,7 +64,7 @@ pub(crate) struct PythonDictProperty {
 }
 
 impl PythonDictProperty {
-    pub(crate) fn as_type_str(&self) -> String {
+    pub(crate) fn as_property_type_str(&self) -> String {
         if self.nullable {
             format!("{} | None", self.data_type.as_primitive_type_str())
         } else {
@@ -85,66 +80,28 @@ pub(crate) struct PythonDict {
 }
 
 impl PythonDict {
-    pub(crate) fn to_typed_dict_class_string(&self) -> String {
+    pub(crate) fn as_typed_dict_class_string(&self) -> String {
         let mut type_string = format!("class {}(TypedDict):\n", self.name);
         for property in &self.properties {
             type_string.push_str(&format!(
                 "    {}: {}\n",
                 property.name,
-                property.as_type_str()
+                property.as_property_type_str()
             ));
         }
         type_string
     }
 
-    pub(crate) fn to_backwards_compat_typed_dict_class_string(&self) -> String {
+    pub(crate) fn as_backwards_compat_typed_dict_class_string(&self) -> String {
         let mut type_string = format!("{} = TypedDict('{}', {{\n", self.name, self.name);
         for property in &self.properties {
             type_string.push_str(&format!(
                 "    '{}': {},\n",
                 property.name,
-                property.as_type_str()
+                property.as_property_type_str()
             ));
         }
         type_string.push_str("})");
         type_string
     }
-}
-
-pub(crate) fn write_table_dict_hashmap_to_string(
-    tables: HashMap<String, Vec<PythonDictProperty>>,
-) -> String {
-    let mut result = String::from("import datetime\nfrom typing import TypedDict, Any\n\n\n");
-
-    let python_dicts = tables
-        .iter()
-        .map(|(name, properties)| PythonDict {
-            name: name.to_case(Case::Pascal),
-            properties: properties.to_vec(),
-        })
-        .filter(|dict| !dict.name.contains('$')) // prevents weirdness with some system tables
-        .sorted_by_key(|f| f.name.clone())
-        .map(|dict| {
-            let mut iter = dict.properties.iter();
-
-            let starts_with_number =
-                |p: &PythonDictProperty| p.name.chars().next().unwrap().is_numeric();
-            let contains_space = |p: &PythonDictProperty| p.name.contains(' ');
-            let contains_keyword = |p: &PythonDictProperty| p.name == "from";
-
-            let requires_backwards_compat =
-                iter.any(|p| starts_with_number(p) || contains_space(p) || contains_keyword(p));
-
-            if requires_backwards_compat {
-                dict.to_backwards_compat_typed_dict_class_string()
-            } else {
-                dict.to_typed_dict_class_string()
-            }
-        })
-        .collect::<Vec<String>>()
-        .join("\n\n");
-
-    result.push_str(python_dicts.as_str());
-
-    result
 }
