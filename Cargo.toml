@@ -1,5 +1,5 @@
 [package]
-name = "introspector-gadget"
+name = "db-introspector-gadget"
 version = "0.1.0"
 edition = "2021"
 authors = ["Ses <jsesgoe@gmail.com>"]

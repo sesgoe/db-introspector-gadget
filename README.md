@@ -1,4 +1,4 @@
-# Introspector Gadget
+# DB Introspector Gadget
 
 ![Inspector Gadget introspecting a safe](inspector_gadget.gif)
 
