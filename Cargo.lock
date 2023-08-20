@@ -305,18 +305,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "db-introspector"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "convert_case",
- "itertools 0.11.0",
- "sqlx",
- "tokio",
-]
-
-[[package]]
 name = "der"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -609,6 +597,18 @@ checksum = "d5477fe2230a79769d8dc68e0eabf5437907c0457a5614a9e8dddb67f65eb65d"
 dependencies = [
  "equivalent",
  "hashbrown",
+]
+
+[[package]]
+name = "introspector-gadget"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "convert_case",
+ "itertools 0.11.0",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]
