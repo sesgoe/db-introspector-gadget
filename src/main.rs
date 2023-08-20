@@ -45,5 +45,7 @@ async fn main() -> anyhow::Result<()> {
         fs::File::create(&filename).context(format!("Unable to create {} file.", &filename))?;
     file.write_all(file_contents.as_bytes())?;
 
+    println!("Successfully created {}", &filename);
+
     Ok(())
 }

@@ -14,9 +14,11 @@ pub(crate) struct TableColumnDefinition {
 pub(crate) async fn get_table_definitions(
     connection_string: &str,
     schema: &str,
-) -> Result<Vec<TableColumnDefinition>, sqlx::Error> {
+) -> Result<Vec<TableColumnDefinition>, anyhow::Error> {
     if connection_string.starts_with("postgres") {
+        println!("Attempting to connect to provided Postgres DB.");
         let mut conn = PgConnection::connect(connection_string).await.unwrap();
+        println!("Connected! Introspecting Postgres DB.");
 
         let query = "SELECT table_name, column_name, is_nullable, data_type FROM information_schema.COLUMNS where table_schema = $1 order by table_name, column_name";
 
@@ -38,8 +40,10 @@ pub(crate) async fn get_table_definitions(
             .collect::<Vec<TableColumnDefinition>>();
 
         Ok(result)
-    } else {
+    } else if connection_string.starts_with("mysql") {
+        println!("Attempting to connect to provided MySQL DB.");
         let mut conn = MySqlConnection::connect(connection_string).await.unwrap();
+        println!("Connected! Introspecting MySQL DB.");
 
         let query = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM information_schema.COLUMNS where table_schema = ? order by TABLE_NAME, COLUMN_NAME";
 
@@ -61,5 +65,9 @@ pub(crate) async fn get_table_definitions(
             .collect::<Vec<TableColumnDefinition>>();
 
         Ok(result)
+    } else {
+        Err(anyhow::anyhow!(
+            "Unsupported database type. Only MySQL and Postgres are supported."
+        ))
     }
 }
