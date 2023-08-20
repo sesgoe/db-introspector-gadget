@@ -1,4 +1,6 @@
-# Rust DB Introspector
+# Introspector Gadget
+
+![Inspector Gadget introspecting a safe](inspector_gadget.gif)
 
 This is a simple tool that can introspect MySQL or Postgres databases and generate a python file that contains `TypedDict` definitions for the tables and columns in the provided database schema.
 
