@@ -18,7 +18,7 @@ pub(crate) async fn get_table_definitions(
     if connection_string.starts_with("postgres") {
         let mut conn = PgConnection::connect(connection_string).await.unwrap();
 
-        let query = "SELECT table_name, column_name, is_nullable, data_type FROM information_schema.COLUMNS where table_schema = $1";
+        let query = "SELECT table_name, column_name, is_nullable, data_type FROM information_schema.COLUMNS where table_schema = $1 order by table_name, column_name";
 
         let result = sqlx::query(query)
             .bind(schema)
@@ -41,7 +41,7 @@ pub(crate) async fn get_table_definitions(
     } else {
         let mut conn = MySqlConnection::connect(connection_string).await.unwrap();
 
-        let query = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM information_schema.COLUMNS where table_schema = ?";
+        let query = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM information_schema.COLUMNS where table_schema = ? order by TABLE_NAME, COLUMN_NAME";
 
         let result = sqlx::query(query)
             .bind(schema)
