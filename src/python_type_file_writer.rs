@@ -27,10 +27,6 @@ pub(crate) fn convert_table_column_definitions_to_python_dicts(
         });
     }
 
-    // tables_map.values_mut().for_each(|d| {
-    //     d.properties.sort_by_key(|p| p.name.clone());
-    // });
-
     tables_map
         .into_values()
         .sorted_by_key(|d| d.name.clone())
