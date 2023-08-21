@@ -52,9 +52,9 @@ pub(crate) fn write_python_dicts_to_str(dicts: Vec<PythonTypedDict>) -> String {
                 iter.any(|p| starts_with_number(p) || contains_space(p) || contains_keyword(p));
 
             if requires_backwards_compat {
-                dict.as_backwards_compat_typed_dict_class_string()
+                dict.as_backwards_compat_typed_dict_class_str()
             } else {
-                dict.as_typed_dict_class_string()
+                dict.as_typed_dict_class_str()
             }
         })
         .collect::<Vec<String>>()

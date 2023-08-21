@@ -80,7 +80,7 @@ pub(crate) struct PythonTypedDict {
 }
 
 impl PythonTypedDict {
-    pub(crate) fn as_typed_dict_class_string(&self) -> String {
+    pub(crate) fn as_typed_dict_class_str(&self) -> String {
         let mut type_string = format!("class {}(TypedDict):\n", self.name);
         for property in &self.properties {
             type_string.push_str(&format!(
@@ -92,7 +92,7 @@ impl PythonTypedDict {
         type_string
     }
 
-    pub(crate) fn as_backwards_compat_typed_dict_class_string(&self) -> String {
+    pub(crate) fn as_backwards_compat_typed_dict_class_str(&self) -> String {
         let mut type_string = format!("{} = TypedDict('{}', {{\n", self.name, self.name);
         for property in &self.properties {
             type_string.push_str(&format!(
@@ -103,5 +103,153 @@ impl PythonTypedDict {
         }
         type_string.push_str("})");
         type_string
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_non_nullable_property_type_str() {
+        let pdp = PythonDictProperty {
+            name: String::from("some_property"),
+            nullable: false,
+            data_type: PythonDataType::String,
+        };
+
+        assert_eq!(pdp.as_property_type_str(), String::from("str"))
+    }
+
+    #[test]
+    fn test_nullable_property_type_str() {
+        let pdp = PythonDictProperty {
+            name: String::from("some_property"),
+            nullable: true,
+            data_type: PythonDataType::String,
+        };
+
+        assert_eq!(pdp.as_property_type_str(), String::from("str | None"))
+    }
+
+    #[test]
+    fn test_typed_dict_class_str() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![PythonDictProperty {
+                name: String::from("some_property"),
+                nullable: false,
+                data_type: PythonDataType::String,
+            }],
+        };
+
+        let expected = String::from("class TestTable(TypedDict):\n    some_property: str\n");
+
+        assert_eq!(dict.as_typed_dict_class_str(), expected);
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_mult_properties() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::Boolean,
+                },
+            ],
+        };
+
+        let expected = String::from(
+            "class TestTable(TypedDict):\n    some_property: str\n    some_other_property: bool\n",
+        );
+
+        assert_eq!(dict.as_typed_dict_class_str(), expected);
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_property() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![PythonDictProperty {
+                name: String::from("some_property"),
+                nullable: true,
+                data_type: PythonDataType::String,
+            }],
+        };
+
+        let expected = String::from("class TestTable(TypedDict):\n    some_property: str | None\n");
+
+        assert_eq!(dict.as_typed_dict_class_str(), expected);
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_and_nonnull_property() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: true,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+            ],
+        };
+
+        let expected = String::from("class TestTable(TypedDict):\n    some_property: str | None\n    some_other_property: str\n");
+
+        assert_eq!(dict.as_typed_dict_class_str(), expected);
+    }
+
+    #[test]
+    fn test_backwards_compat_typed_dict() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![PythonDictProperty {
+                name: String::from("some_property"),
+                nullable: false,
+                data_type: PythonDataType::String,
+            }],
+        };
+
+        let expected =
+            String::from("TestTable = TypedDict('TestTable', {\n    'some_property': str,\n})");
+
+        assert_eq!(dict.as_backwards_compat_typed_dict_class_str(), expected);
+    }
+
+    #[test]
+    fn test_backwards_compat_typed_dict_with_mult_and_nullable() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: true,
+                    data_type: PythonDataType::String,
+                },
+            ],
+        };
+
+        let expected =
+            String::from("TestTable = TypedDict('TestTable', {\n    'some_property': str,\n    'some_other_property': str | None,\n})");
+
+        assert_eq!(dict.as_backwards_compat_typed_dict_class_str(), expected);
     }
 }
