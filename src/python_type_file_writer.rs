@@ -5,17 +5,17 @@ use itertools::Itertools;
 
 use crate::{
     db_introspector::TableColumnDefinition,
-    python_types::{PythonDict, PythonDictProperty},
+    python_types::{PythonDictProperty, PythonTypedDict},
 };
 
 pub(crate) fn convert_table_column_definitions_to_python_dicts(
     table_column_definitions: Vec<TableColumnDefinition>,
-) -> Vec<PythonDict> {
-    let mut tables_map = HashMap::<String, PythonDict>::new();
+) -> Vec<PythonTypedDict> {
+    let mut tables_map = HashMap::<String, PythonTypedDict>::new();
     for table_column_definition in table_column_definitions {
         let dict = tables_map
             .entry(table_column_definition.table_name.clone())
-            .or_insert(PythonDict {
+            .or_insert(PythonTypedDict {
                 name: table_column_definition.table_name.to_case(Case::Pascal),
                 properties: vec![],
             });
@@ -33,7 +33,7 @@ pub(crate) fn convert_table_column_definitions_to_python_dicts(
         .collect()
 }
 
-pub(crate) fn write_python_dicts_to_str(dicts: Vec<PythonDict>) -> String {
+pub(crate) fn write_python_dicts_to_str(dicts: Vec<PythonTypedDict>) -> String {
     let mut result = String::from("import datetime\nfrom typing import TypedDict, Any\n\n\n");
 
     let python_dicts_str = dicts

@@ -74,12 +74,12 @@ impl PythonDictProperty {
 }
 
 #[derive(Debug, PartialEq, PartialOrd)]
-pub(crate) struct PythonDict {
+pub(crate) struct PythonTypedDict {
     pub(crate) name: String,
     pub(crate) properties: Vec<PythonDictProperty>,
 }
 
-impl PythonDict {
+impl PythonTypedDict {
     pub(crate) fn as_typed_dict_class_string(&self) -> String {
         let mut type_string = format!("class {}(TypedDict):\n", self.name);
         for property in &self.properties {

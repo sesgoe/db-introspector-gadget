@@ -1,9 +1,5 @@
-use sqlx::Connection;
-use sqlx::MySqlConnection;
-use sqlx::PgConnection;
-use sqlx::Row;
+use sqlx::{Connection, MySqlConnection, PgConnection, Row};
 
-#[derive(Debug)]
 pub(crate) struct TableColumnDefinition {
     pub(crate) table_name: String,
     pub(crate) column_name: String,

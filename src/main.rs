@@ -34,8 +34,8 @@ async fn main() -> anyhow::Result<()> {
             .await
             .context("Unable to connect to database")?;
 
-    let python_dicts = convert_table_column_definitions_to_python_dicts(table_definitions);
-    let file_contents = write_python_dicts_to_str(python_dicts);
+    let python_typed_dicts = convert_table_column_definitions_to_python_dicts(table_definitions);
+    let file_contents = write_python_dicts_to_str(python_typed_dicts);
 
     let filename = args
         .output_filename
