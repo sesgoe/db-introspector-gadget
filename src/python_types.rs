@@ -2,6 +2,7 @@
 pub(crate) enum PythonDataType {
     String,
     Integer,
+    Long,
     Float,
     Boolean,
     DateTime,
@@ -15,6 +16,7 @@ impl PythonDataType {
         match self {
             PythonDataType::String => "str",
             PythonDataType::Integer => "int",
+            PythonDataType::Long => "long",
             PythonDataType::Float => "float",
             PythonDataType::Boolean => "bool",
             PythonDataType::DateTime => "datetime.datetime",
@@ -27,27 +29,27 @@ impl PythonDataType {
 }
 
 impl From<String> for PythonDataType {
-    // some patterns are also defined for mysql, which makes the postgres patterns unreachable
-    // this is fine, and the lint is disabled mostly for better readability
-    #[allow(unreachable_patterns)]
     fn from(data_type: String) -> Self {
         match data_type.as_str() {
+            //both
+            "text" => PythonDataType::String,
+            "date" => PythonDataType::Date,
+            "bigint" => PythonDataType::Long,
+
             // mysql
-            "varchar" | "longtext" | "text" | "json" | "char" | "mediumtext" | "enum" | "set" => {
+            "varchar" | "longtext" | "json" | "char" | "mediumtext" | "enum" | "set" => {
                 PythonDataType::String
             }
-            "int" | "bigint" | "smallint" => PythonDataType::Integer,
+            "int" | "smallint" => PythonDataType::Integer,
             "float" | "double" | "decimal" => PythonDataType::Float,
             "tinyint" => PythonDataType::Boolean,
             "datetime" | "timestamp" => PythonDataType::DateTime,
-            "date" => PythonDataType::Date,
             "binary" | "blob" | "mediumblob" | "longblob" | "varbinary" => PythonDataType::Binary,
 
             // postgres
-            "integer" | "bigint" => PythonDataType::Integer,
+            "integer" => PythonDataType::Integer,
             "boolean" => PythonDataType::Boolean,
-            "character varying" | "jsonb" | "USER-DEFINED" | "text" => PythonDataType::String, // user-defined are typically enums
-            "date" => PythonDataType::Date,
+            "character varying" | "jsonb" | "USER-DEFINED" => PythonDataType::String, // user-defined are typically enums for type-inference purposes
             "double precision" | "numeric" => PythonDataType::Float,
             "timestamp with time zone" => PythonDataType::DateTime,
 
