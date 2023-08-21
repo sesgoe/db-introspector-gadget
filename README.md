@@ -61,7 +61,7 @@ with psycopg2.connect("dbname=testing user=postgres password=password") as conn:
 Note: It's a prerequisite that you have `cargo` installed. If you don't, you can install it [here](https://www.rust-lang.org/tools/install).
 
 ```bash
-cargo install db-introspector
+cargo install db-introspector-gadget
 ```
 
 ## Usage 🚀
@@ -69,29 +69,29 @@ cargo install db-introspector
 #### Introspect a MySQL Database
 
 ```bash
-db-introspector -c mysql://root:password@127.0.0.1:3306/testing -s testing
+db-introspector-gadget -c mysql://root:password@127.0.0.1:3306/testing -s testing
 ```
 
 #### Introspect a Postgres Database
 
 ```bash
-db-introspector -c postgres://postgres:password@localhost:5432/testing -s public
+db-introspector-gadget -c postgres://postgres:password@localhost:5432/testing -s public
 ```
 
 #### Introspect a Postgres Database and specify the output filename
 
 ```bash
-db-introspector -c postgres://postgres:password@localhost:5432/testing -s public -o my_types.py
+db-introspector-gadget -c postgres://postgres:password@localhost:5432/testing -s public -o my_types.py
 ```
 
 #### Show Help output
 
 ```bash
-db-introspector --help
+db-introspector-gadget --help
 ```
 
 or
 
 ```bash
-db-introspector -h
+db-introspector-gadget -h
 ```
