@@ -99,3 +99,19 @@ or
 ```bash
 db-introspector-gadget -h
 ```
+
+Which should output:
+
+```bash
+A MySql and Postgres database introspection tool that generates Python types
+
+Usage: db-introspector-gadget [OPTIONS] --connection-string <CONNECTION_STRING> --schema <SCHEMA>
+
+Options:
+  -c, --connection-string <CONNECTION_STRING>
+  -s, --schema <SCHEMA>
+  -o, --output-filename <OUTPUT_FILENAME>      [default: table_types.py]
+  -b, --backwards-compat-forced
+  -h, --help                                   Print help
+  -V, --version                                Print version
+```
