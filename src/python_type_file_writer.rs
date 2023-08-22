@@ -42,6 +42,7 @@ pub(crate) fn write_python_dicts_to_str(
     let python_dicts_str = dicts
         .iter()
         .filter(|dict| !dict.name.contains('$')) // prevents weirdness with some system tables
+        .filter(|dict| !dict.name.chars().next().unwrap().is_numeric())
         .sorted_by_key(|f| f.name.clone())
         .map(|dict| {
             let mut iter = dict.properties.iter();
