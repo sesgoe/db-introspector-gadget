@@ -4,7 +4,7 @@
 
 This is a simple tool that can introspect MySQL or Postgres databases and generate a python file that contains `TypedDict` definitions for the tables and columns in the provided database schema.
 
-> [!NOTE]
+> [!IMPORTANT]
 > Python `TypedDict`s require a minimum Python of _3.8_ for the syntax mentioned below, or Python _3.6_ for backwards-compatible syntax.
 > If your Python version is >= _3.6_ and < _3.8_ then you will need to pass the --backwards-compat-forced or -b flag
 
