@@ -33,7 +33,10 @@ pub(crate) fn convert_table_column_definitions_to_python_dicts(
         .collect()
 }
 
-pub(crate) fn write_python_dicts_to_str(dicts: Vec<PythonTypedDict>) -> String {
+pub(crate) fn write_python_dicts_to_str(
+    dicts: Vec<PythonTypedDict>,
+    backwards_compat_forced: bool,
+) -> String {
     let mut result = String::from("import datetime\nfrom typing import TypedDict, Any\n\n\n");
 
     let python_dicts_str = dicts
@@ -51,7 +54,7 @@ pub(crate) fn write_python_dicts_to_str(dicts: Vec<PythonTypedDict>) -> String {
             let requires_backwards_compat =
                 iter.any(|p| starts_with_number(p) || contains_space(p) || contains_keyword(p));
 
-            if requires_backwards_compat {
+            if requires_backwards_compat || backwards_compat_forced {
                 dict.as_backwards_compat_typed_dict_class_str()
             } else {
                 dict.as_typed_dict_class_str()

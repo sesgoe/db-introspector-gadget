@@ -23,6 +23,9 @@ struct Args {
 
     #[arg(short, long, default_value = "table_types.py")]
     output_filename: Option<String>,
+
+    #[arg(short, long, default_value = "false")]
+    backwards_compat_forced: bool,
 }
 
 #[tokio::main]
@@ -35,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
             .context("Unable to connect to database")?;
 
     let python_typed_dicts = convert_table_column_definitions_to_python_dicts(table_definitions);
-    let file_contents = write_python_dicts_to_str(python_typed_dicts);
+    let file_contents = write_python_dicts_to_str(python_typed_dicts, args.backwards_compat_forced);
 
     let filename = args
         .output_filename
