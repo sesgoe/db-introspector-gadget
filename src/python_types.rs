@@ -111,6 +111,7 @@ impl PythonTypedDict {
 #[cfg(test)]
 mod test {
     use super::*;
+    use indoc::indoc;
 
     #[test]
     fn test_non_nullable_property_type_str() {
@@ -145,7 +146,10 @@ mod test {
             }],
         };
 
-        let expected = String::from("class TestTable(TypedDict):\n    some_property: str\n");
+        let expected = indoc! {"
+            class TestTable(TypedDict):
+                some_property: str
+        "};
 
         assert_eq!(dict.as_typed_dict_class_str(), expected);
     }
@@ -168,9 +172,11 @@ mod test {
             ],
         };
 
-        let expected = String::from(
-            "class TestTable(TypedDict):\n    some_property: str\n    some_other_property: bool\n",
-        );
+        let expected = indoc! {"
+            class TestTable(TypedDict):
+                some_property: str
+                some_other_property: bool
+        "};
 
         assert_eq!(dict.as_typed_dict_class_str(), expected);
     }
@@ -186,7 +192,10 @@ mod test {
             }],
         };
 
-        let expected = String::from("class TestTable(TypedDict):\n    some_property: str | None\n");
+        let expected = indoc! {"
+            class TestTable(TypedDict):
+                some_property: str | None
+        "};
 
         assert_eq!(dict.as_typed_dict_class_str(), expected);
     }
@@ -209,7 +218,11 @@ mod test {
             ],
         };
 
-        let expected = String::from("class TestTable(TypedDict):\n    some_property: str | None\n    some_other_property: str\n");
+        let expected = indoc! {"
+            class TestTable(TypedDict):
+                some_property: str | None
+                some_other_property: str
+        "};
 
         assert_eq!(dict.as_typed_dict_class_str(), expected);
     }
@@ -225,8 +238,11 @@ mod test {
             }],
         };
 
-        let expected =
-            String::from("TestTable = TypedDict('TestTable', {\n    'some_property': str,\n})");
+        let expected = indoc! {"
+            TestTable = TypedDict('TestTable', {
+                'some_property': str,
+            })"
+        };
 
         assert_eq!(dict.as_backwards_compat_typed_dict_class_str(), expected);
     }
@@ -249,8 +265,12 @@ mod test {
             ],
         };
 
-        let expected =
-            String::from("TestTable = TypedDict('TestTable', {\n    'some_property': str,\n    'some_other_property': str | None,\n})");
+        let expected = indoc! {"
+            TestTable = TypedDict('TestTable', {
+                'some_property': str,
+                'some_other_property': str | None,
+            })"
+        };
 
         assert_eq!(dict.as_backwards_compat_typed_dict_class_str(), expected);
     }
