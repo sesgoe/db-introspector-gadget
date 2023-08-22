@@ -8,6 +8,8 @@ use crate::{
     python_types::{PythonDictProperty, PythonTypedDict},
 };
 
+/// Converts a Vec<TableColumnDefinition> that comes from the database introspection query
+/// into the Vec<PythonTypedDict> that is easy to manipulate into a Python source file
 pub(crate) fn convert_table_column_definitions_to_python_dicts(
     table_column_definitions: Vec<TableColumnDefinition>,
 ) -> Vec<PythonTypedDict> {
@@ -33,6 +35,7 @@ pub(crate) fn convert_table_column_definitions_to_python_dicts(
         .collect()
 }
 
+/// Writes the Vec<PythonTypedDict> into a Python source string that can then later be written to a file inside `main()`
 pub(crate) fn write_python_dicts_to_str(
     dicts: Vec<PythonTypedDict>,
     backwards_compat_forced: bool,

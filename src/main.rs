@@ -1,3 +1,14 @@
+//! `db-introspector-gadget is a cli rust tool to introspect a MySQL or Postgres Database
+//! and create a Python source code output file that contains `TypedDict` definitions for all tables
+//! introspected in the supplied schema.
+//!
+//! By default this tool outputs Python source files that require Python >= 3.8.
+//!
+//! You can use the `--backwards-compat-forced` (or `-b`) flag to use an alternative syntax that
+//! supports Python >= 3.6.
+
+#![deny(unsafe_code)]
+
 use std::{fs, io::Write};
 
 use anyhow::Context;
@@ -12,18 +23,25 @@ use python_type_file_writer::{
 mod python_type_file_writer;
 mod python_types;
 
+/// This is a `clap` struct to define the arguments this tool takes in as input.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// The MySQL or Postgres connection string in the format mysql://___ or postgres://___
+    /// of the database that you would like to introspect
     #[arg(short, long)]
     connection_string: String,
 
+    /// The database schema that you would like to introspect and create table types for
     #[arg(short, long)]
     schema: String,
 
+    /// The Python source filename for output. Defaults to `table_types.py`
     #[arg(short, long, default_value = "table_types.py")]
     output_filename: Option<String>,
 
+    /// If you need to support Python >= 3.6 and < 3.8, you will need to use this
+    /// flag to force-enable the alternative, backward-compatible syntax
     #[arg(short, long, default_value = "false")]
     backwards_compat_forced: bool,
 }

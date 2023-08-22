@@ -1,3 +1,5 @@
+/// This enum represents all the Python types we can output
+/// `Any` is included as a catch-all to handle unknown database types.
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) enum PythonDataType {
     String,
@@ -12,6 +14,7 @@ pub(crate) enum PythonDataType {
 }
 
 impl PythonDataType {
+    /// Convert a `PythonDataType` into its source code type representation
     pub(crate) fn as_primitive_type_str(&self) -> String {
         match self {
             PythonDataType::String => "str",
@@ -28,6 +31,8 @@ impl PythonDataType {
     }
 }
 
+/// This is the primary way we convert the database INFORMATION_SCHEMA.TABLE_COLUMNS `data_type` string column
+/// into given Python data types
 impl From<String> for PythonDataType {
     fn from(data_type: String) -> Self {
         match data_type.as_str() {
@@ -58,6 +63,13 @@ impl From<String> for PythonDataType {
     }
 }
 
+/// Represents a Python `TypedDict` property
+/// class SomeTypedDict(TypedDict):
+///     some_other_property: str | None
+///     ^                    ^   ^
+///     |                    |   |
+///     name                 |   nullable
+///                          data_type
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub(crate) struct PythonDictProperty {
     pub(crate) name: String,
@@ -66,6 +78,7 @@ pub(crate) struct PythonDictProperty {
 }
 
 impl PythonDictProperty {
+    /// Builds a string representing the type of the given `PythonDictProperty`
     pub(crate) fn as_property_type_str(&self) -> String {
         if self.nullable {
             format!("{} | None", self.data_type.as_primitive_type_str())
@@ -75,6 +88,17 @@ impl PythonDictProperty {
     }
 }
 
+/// Represents a full `TypedDict` definition in Python
+/// class SomeDictionary(TypedDict):
+///       ^
+///       |
+///       name
+///     some_property: str | None
+///     some_other_property: str
+///     ...
+///     ^
+///     |
+///     properties
 #[derive(Debug, PartialEq, PartialOrd)]
 pub(crate) struct PythonTypedDict {
     pub(crate) name: String,
@@ -82,6 +106,7 @@ pub(crate) struct PythonTypedDict {
 }
 
 impl PythonTypedDict {
+    /// Outputs a string representation of this `TypedDict` in the Python > 3.8 syntax
     pub(crate) fn as_typed_dict_class_str(&self) -> String {
         let mut type_string = format!("class {}(TypedDict):\n", self.name);
         for property in &self.properties {
@@ -94,6 +119,7 @@ impl PythonTypedDict {
         type_string
     }
 
+    /// Outputs a string representation of this `TypedDict` in the Python > 3.6 alternative, backward-compatible syntax
     pub(crate) fn as_backwards_compat_typed_dict_class_str(&self) -> String {
         let mut type_string = format!("{} = TypedDict('{}', {{\n", self.name, self.name);
         for property in &self.properties {

@@ -1,5 +1,7 @@
 use sqlx::{Connection, MySqlConnection, PgConnection, Row};
 
+/// Represents the basic structure of the INFORMATION_SCHEMA.COLUMNS table query we use
+/// This table has many more columns that we do not use for the purposes of this project.
 pub(crate) struct TableColumnDefinition {
     pub(crate) table_name: String,
     pub(crate) column_name: String,
@@ -7,6 +9,9 @@ pub(crate) struct TableColumnDefinition {
     pub(crate) data_type: String,
 }
 
+/// Establishes a MySQL or Postgres connection to run a single query against INFORMATION_SCHEMA.COLUMNS
+/// and converts the result into a Vec<TableColumnDefinition> to later be transformed into a Vec<PythonTypedDict>
+/// to later be transformed into a Python source file with the table type definitions
 pub(crate) async fn get_table_definitions(
     connection_string: &str,
     schema: &str,
@@ -16,7 +21,7 @@ pub(crate) async fn get_table_definitions(
         let mut conn = PgConnection::connect(connection_string).await.unwrap();
         println!("Connected! Introspecting Postgres DB.");
 
-        let query = "SELECT table_name, column_name, is_nullable, data_type FROM information_schema.COLUMNS where table_schema = $1 order by table_name, column_name";
+        let query = "SELECT table_name, column_name, is_nullable, data_type FROM INFORMATION_SCHEMA.COLUMNS where table_schema = $1 order by table_name, column_name";
 
         let result = sqlx::query(query)
             .bind(schema)
@@ -41,7 +46,7 @@ pub(crate) async fn get_table_definitions(
         let mut conn = MySqlConnection::connect(connection_string).await.unwrap();
         println!("Connected! Introspecting MySQL DB.");
 
-        let query = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM information_schema.COLUMNS where table_schema = ? order by TABLE_NAME, COLUMN_NAME";
+        let query = "SELECT TABLE_NAME, COLUMN_NAME, IS_NULLABLE, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA = ? order by TABLE_NAME, COLUMN_NAME";
 
         let result = sqlx::query(query)
             .bind(schema)
