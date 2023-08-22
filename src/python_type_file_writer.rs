@@ -50,10 +50,10 @@ pub(crate) fn write_python_dicts_to_str(
             let starts_with_number =
                 |p: &PythonDictProperty| p.name.chars().next().unwrap().is_numeric();
             let contains_space = |p: &PythonDictProperty| p.name.contains(' ');
-            let contains_keyword = |p: &PythonDictProperty| p.name == "from";
+            let is_python_keyword = |p: &PythonDictProperty| p.name == "from";
 
             let requires_backwards_compat =
-                iter.any(|p| starts_with_number(p) || contains_space(p) || contains_keyword(p));
+                iter.any(|p| starts_with_number(p) || contains_space(p) || is_python_keyword(p));
 
             if requires_backwards_compat || backwards_compat_forced {
                 dict.as_backwards_compat_typed_dict_class_str()
