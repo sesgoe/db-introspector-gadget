@@ -6,10 +6,11 @@ use itertools::Itertools;
 use crate::{
     db_introspector::TableColumnDefinition,
     python_types::{PythonDictProperty, PythonTypedDict},
+    MinimumPythonVersion,
 };
 
-/// Converts a Vec<TableColumnDefinition> that comes from the database introspection query
-/// into the Vec<PythonTypedDict> that is easy to manipulate into a Python source file
+/// Converts a `Vec<TableColumnDefinition>` that comes from the database introspection query
+/// into the `Vec<PythonTypedDict>` that is easy to manipulate into a Python source file
 pub(crate) fn convert_table_column_definitions_to_python_dicts(
     table_column_definitions: Vec<TableColumnDefinition>,
 ) -> Vec<PythonTypedDict> {
@@ -35,12 +36,18 @@ pub(crate) fn convert_table_column_definitions_to_python_dicts(
         .collect()
 }
 
-/// Writes the Vec<PythonTypedDict> into a Python source string that can then later be written to a file inside `main()`
+/// Writes the `Vec<PythonTypedDict>` into a Python source string that can then later be written to a file inside `main()`
 pub(crate) fn write_python_dicts_to_str(
     dicts: Vec<PythonTypedDict>,
-    backwards_compat_forced: bool,
+    minimum_python_version: MinimumPythonVersion,
 ) -> String {
-    let mut result = String::from("import datetime\nfrom typing import TypedDict, Any\n\n\n");
+    let mut result = match minimum_python_version {
+        MinimumPythonVersion::Python3_10 => {
+            String::from("import datetime\nfrom typing import Any, TypedDict\n\n\n")
+            // don't need to include Optional in 3.10
+        }
+        _ => String::from("import datetime\nfrom typing import Any, Optional, TypedDict\n\n\n"),
+    };
 
     let python_dicts_str = dicts
         .iter()
@@ -55,14 +62,10 @@ pub(crate) fn write_python_dicts_to_str(
             let contains_space = |p: &PythonDictProperty| p.name.contains(' ');
             let is_python_keyword = |p: &PythonDictProperty| p.name == "from";
 
-            let requires_backwards_compat =
+            let requires_backward_compat =
                 iter.any(|p| starts_with_number(p) || contains_space(p) || is_python_keyword(p));
 
-            if backwards_compat_forced || requires_backwards_compat {
-                dict.as_backwards_compat_typed_dict_class_str()
-            } else {
-                dict.as_typed_dict_class_str()
-            }
+            dict.as_typed_dict_class_str(minimum_python_version, requires_backward_compat.into())
         })
         .collect::<Vec<String>>()
         .join("\n\n");
@@ -217,10 +220,10 @@ mod test {
             ],
         }];
 
-        let result = write_python_dicts_to_str(dict, false);
+        let result = write_python_dicts_to_str(dict, MinimumPythonVersion::Python3_10);
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, TypedDict
 
 
             class SomeTable(TypedDict):
@@ -252,10 +255,10 @@ mod test {
             },
         ];
 
-        let result = write_python_dicts_to_str(dicts, false);
+        let result = write_python_dicts_to_str(dicts, MinimumPythonVersion::Python3_10);
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, TypedDict
 
 
             class ATable(TypedDict):
@@ -290,10 +293,10 @@ mod test {
             },
         ];
 
-        let result = write_python_dicts_to_str(dicts, false);
+        let result = write_python_dicts_to_str(dicts, MinimumPythonVersion::Python3_10);
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, TypedDict
 
 
             class BTable(TypedDict):
@@ -324,10 +327,10 @@ mod test {
             },
         ];
 
-        let result = write_python_dicts_to_str(dicts, false);
+        let result = write_python_dicts_to_str(dicts, MinimumPythonVersion::Python3_10);
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, TypedDict
 
 
             class BTable(TypedDict):
@@ -358,15 +361,15 @@ mod test {
             },
         ];
 
-        let result = write_python_dicts_to_str(dicts, false);
+        let result = write_python_dicts_to_str(dicts, MinimumPythonVersion::Python3_10);
 
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, TypedDict
 
 
             ATable = TypedDict('ATable', {
-                '1column': str | None,
+                '1column': str | None
             })
 
             class BTable(TypedDict):
@@ -377,7 +380,7 @@ mod test {
     }
 
     #[test]
-    fn backwards_compat_forced_true() {
+    fn supports_python_3_6() {
         let dicts = vec![
             PythonTypedDict {
                 name: String::from("ATable"),
@@ -397,19 +400,19 @@ mod test {
             },
         ];
 
-        let result = write_python_dicts_to_str(dicts, true);
+        let result = write_python_dicts_to_str(dicts, MinimumPythonVersion::Python3_6);
 
         let expected = indoc! {"
             import datetime
-            from typing import TypedDict, Any
+            from typing import Any, Optional, TypedDict
 
 
             ATable = TypedDict('ATable', {
-                '1column': str | None,
+                '1column': Optional[str]
             })
 
             BTable = TypedDict('BTable', {
-                'column_one': str,
+                'column_one': str
             })"};
 
         assert_eq!(result, expected)

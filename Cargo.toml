@@ -6,7 +6,6 @@ authors = ["Ses <jsesgoe@gmail.com>"]
 description = "A MySql and Postgres database introspection tool that generates Python types"
 repository = "https://github.com/sesgoe/introspector-gadget"
 license = "MIT"
-license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

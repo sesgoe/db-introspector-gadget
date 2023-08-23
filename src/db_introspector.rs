@@ -10,7 +10,7 @@ pub(crate) struct TableColumnDefinition {
 }
 
 /// Establishes a MySQL or Postgres connection to run a single query against INFORMATION_SCHEMA.COLUMNS
-/// and converts the result into a Vec<TableColumnDefinition> to later be transformed into a Vec<PythonTypedDict>
+/// and converts the result into a `Vec<TableColumnDefinition>` to later be transformed into a `Vec<PythonTypedDict>`
 /// to later be transformed into a Python source file with the table type definitions
 pub(crate) async fn get_table_definitions(
     connection_string: &str,
