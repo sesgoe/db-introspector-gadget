@@ -205,22 +205,38 @@ mod test {
     use super::*;
     use indoc::indoc;
 
-    #[test]
-    fn test_non_nullable_property_type_str() {
-        let pdp = PythonDictProperty {
+    fn get_str_some_property(nullable: bool) -> PythonDictProperty {
+        PythonDictProperty {
             name: String::from("some_property"),
-            nullable: false,
+            nullable,
             data_type: PythonDataType::String,
-        };
+        }
+    }
+
+    #[test]
+    fn test_non_nullable_property_type_str_python_3_6() {
+        let pdp = get_str_some_property(false);
 
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_6),
             String::from("str")
         );
+    }
+
+    #[test]
+    fn test_non_nullable_property_type_str_python_3_8() {
+        let pdp = get_str_some_property(false);
+
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_8),
             String::from("str")
         );
+    }
+
+    #[test]
+    fn test_non_nullable_property_type_str_python_3_10() {
+        let pdp = get_str_some_property(false);
+
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_10),
             String::from("str")
@@ -228,21 +244,29 @@ mod test {
     }
 
     #[test]
-    fn test_nullable_property_type_str() {
-        let pdp = PythonDictProperty {
-            name: String::from("some_property"),
-            nullable: true,
-            data_type: PythonDataType::String,
-        };
+    fn test_nullable_property_type_str_python_3_6() {
+        let pdp = get_str_some_property(true);
 
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_6),
             String::from("Optional[str]")
         );
+    }
+
+    #[test]
+    fn test_nullable_property_type_str_python_3_8() {
+        let pdp = get_str_some_property(true);
+
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_8),
             String::from("Optional[str]")
         );
+    }
+
+    #[test]
+    fn test_nullable_property_type_str_python_3_10() {
+        let pdp = get_str_some_property(true);
+
         assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_10),
             String::from("str | None")
@@ -250,14 +274,10 @@ mod test {
     }
 
     #[test]
-    fn test_typed_dict_class_str() {
+    fn test_typed_dict_class_str_python_3_6() {
         let dict = PythonTypedDict {
             name: String::from("TestTable"),
-            properties: vec![PythonDictProperty {
-                name: String::from("some_property"),
-                nullable: false,
-                data_type: PythonDataType::String,
-            }],
+            properties: vec![get_str_some_property(false)],
         };
 
         assert_eq!(
@@ -271,6 +291,27 @@ mod test {
                 })
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_python_3_8() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![get_str_some_property(false)],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_8,
@@ -281,6 +322,27 @@ mod test {
                     some_property: str
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_python_3_10() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![get_str_some_property(false)],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
@@ -291,10 +353,22 @@ mod test {
                     some_property: str
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_10,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str
+                })
+            "}
+        );
     }
 
     #[test]
-    fn test_typed_dict_class_str_with_mult_properties() {
+    fn test_typed_dict_class_str_with_mult_properties_python_3_6() {
         let dict = PythonTypedDict {
             name: String::from("TestTable"),
             properties: vec![
@@ -319,10 +393,43 @@ mod test {
             indoc! {"
                 TestTable = TypedDict('TestTable', {
                     'some_property': str,
-                    'some_other_property': str
+                    'some_other_property': bool
                 })
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str,
+                    'some_other_property': bool
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_mult_properties_python_3_8() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::Boolean,
+                },
+            ],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_8,
@@ -334,6 +441,39 @@ mod test {
                     some_other_property: bool
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str,
+                    'some_other_property': bool
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_mult_properties_python_3_10() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::Boolean,
+                },
+            ],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
@@ -345,17 +485,26 @@ mod test {
                     some_other_property: bool
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_10,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str,
+                    'some_other_property': bool
+                })
+            "}
+        );
     }
 
     #[test]
-    fn test_typed_dict_class_str_with_nullable_property() {
+    fn test_typed_dict_class_str_with_nullable_property_python_3_6() {
         let dict = PythonTypedDict {
             name: String::from("TestTable"),
-            properties: vec![PythonDictProperty {
-                name: String::from("some_property"),
-                nullable: true,
-                data_type: PythonDataType::String,
-            }],
+            properties: vec![get_str_some_property(true)],
         };
 
         assert_eq!(
@@ -369,6 +518,27 @@ mod test {
                 })
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str]
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_property_python_3_8() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![get_str_some_property(true)],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_8,
@@ -379,6 +549,27 @@ mod test {
                     some_property: Optional[str]
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str]
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_property_python_3_10() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![get_str_some_property(true)],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
@@ -389,10 +580,22 @@ mod test {
                     some_property: str | None
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_10,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str | None
+                })
+            "}
+        );
     }
 
     #[test]
-    fn test_typed_dict_class_str_with_nullable_and_nonnull_property() {
+    fn test_typed_dict_class_str_with_nullable_and_nonnull_property_python_3_6() {
         let dict = PythonTypedDict {
             name: String::from("TestTable"),
             properties: vec![
@@ -421,6 +624,39 @@ mod test {
                 })
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str],
+                    'some_other_property': str
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_and_nonnull_property_python_3_8() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: true,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+            ],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_8,
@@ -432,6 +668,39 @@ mod test {
                     some_other_property: str
             "}
         );
+
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Enabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str],
+                    'some_other_property': str
+                })
+            "}
+        );
+    }
+
+    #[test]
+    fn test_typed_dict_class_str_with_nullable_and_nonnull_property_python_3_10() {
+        let dict = PythonTypedDict {
+            name: String::from("TestTable"),
+            properties: vec![
+                PythonDictProperty {
+                    name: String::from("some_property"),
+                    nullable: true,
+                    data_type: PythonDataType::String,
+                },
+                PythonDictProperty {
+                    name: String::from("some_other_property"),
+                    nullable: false,
+                    data_type: PythonDataType::String,
+                },
+            ],
+        };
+
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
@@ -443,65 +712,18 @@ mod test {
                     some_other_property: str
             "}
         );
-    }
-
-    #[test]
-    fn test_backwards_compat_typed_dict() {
-        let dict = PythonTypedDict {
-            name: String::from("TestTable"),
-            properties: vec![PythonDictProperty {
-                name: String::from("some_property"),
-                nullable: false,
-                data_type: PythonDataType::String,
-            }],
-        };
-
-        let expected = indoc! {"
-            TestTable = TypedDict('TestTable', {
-                'some_property': str
-            })"
-        };
-
-        assert_eq!(
-            dict.as_typed_dict_class_str(
-                MinimumPythonVersion::Python3_6,
-                ForcedBackwardCompat::Enabled
-            ),
-            expected
-        );
-    }
-
-    #[test]
-    fn test_backwards_compat_typed_dict_with_mult_and_nullable() {
-        let dict = PythonTypedDict {
-            name: String::from("TestTable"),
-            properties: vec![
-                PythonDictProperty {
-                    name: String::from("some_property"),
-                    nullable: false,
-                    data_type: PythonDataType::String,
-                },
-                PythonDictProperty {
-                    name: String::from("some_other_property"),
-                    nullable: true,
-                    data_type: PythonDataType::String,
-                },
-            ],
-        };
-
-        let expected = indoc! {"
-            TestTable = TypedDict('TestTable', {
-                'some_property': str,
-                'some_other_property': str | None
-            })"
-        };
 
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
                 ForcedBackwardCompat::Enabled
             ),
-            expected
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str | None,
+                    'some_other_property': str
+                })
+            "}
         );
     }
 }

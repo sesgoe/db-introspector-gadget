@@ -70,9 +70,9 @@ struct Args {
     ///
     /// Python 3.6 requires the backward-compat syntax and `Optional[T]`
     ///
-    /// Python 3.8 allows for modern syntax and `Optional[T]`
+    /// Python 3.8 allows for class syntax and `Optional[T]`
     ///
-    /// Python 3.10 allows for modern syntax and `T | None`
+    /// Python 3.10 allows for class syntax and `T | None`
     #[arg(short='p', long, value_enum, default_value_t = MinimumPythonVersion::Python3_10)]
     minimum_python_version: MinimumPythonVersion,
 }
