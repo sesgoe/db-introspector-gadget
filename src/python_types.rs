@@ -56,9 +56,9 @@ impl From<String> for PythonDataType {
             // postgres
             "integer" => PythonDataType::Integer,
             "boolean" => PythonDataType::Boolean,
-            "character varying" | "jsonb" | "USER-DEFINED" => PythonDataType::String, // user-defined are typically enums for type-inference purposes
+            "character varying" | "character" | "jsonb" | "USER-DEFINED" => PythonDataType::String, // user-defined are typically enums for type-inference purposes
             "double precision" | "numeric" => PythonDataType::Float,
-            "timestamp with time zone" => PythonDataType::DateTime,
+            "timestamp with time zone" | "timestamp without time zone" => PythonDataType::DateTime,
 
             _ => PythonDataType::Any,
         }
