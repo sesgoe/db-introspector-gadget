@@ -5,10 +5,10 @@
 This is a simple tool that can introspect MySQL or Postgres databases and generate a python file that contains `TypedDict` definitions for the tables and columns in the provided database schema.
 
 > [!IMPORTANT]
-> Python `TypedDict`s require a minimum Python of `3.8` for the syntax mentioned below, or Python `3.6` for backwards-compatible syntax.
-> If your Python version is >= `3.6` and < `3.8` then you will need to pass the `--backwards-compat-forced` or `-b` flag
+> This tool generates Python source code that requires Python >= 3.10 by default.
+> You can use the `--minimum-python-version` (`-p`) flag to change this to `3.6`, `3.8`, or `3.10`.
 
-The intention is to help make it easier to write type-safe python code that interacts with databases.
+The intention of this tool is to help make it easier to write type-safe python code that interacts with databases.
 
 If you have some example python code that looks like this:
 
@@ -109,9 +109,15 @@ Usage: db-introspector-gadget [OPTIONS] --connection-string <CONNECTION_STRING> 
 
 Options:
   -c, --connection-string <CONNECTION_STRING>
+          The MySQL or Postgres connection string in the format `mysql://___` or `postgres://___` of the database that you would like to introspect
   -s, --schema <SCHEMA>
-  -o, --output-filename <OUTPUT_FILENAME>      [default: table_types.py]
-  -b, --backwards-compat-forced
-  -h, --help                                   Print help
-  -V, --version                                Print version
+          The database schema that you would like to introspect and create table types for
+  -o, --output-filename <OUTPUT_FILENAME>
+          Optional output file path for the final source file output [default: table_types.py]
+  -p, --minimum-python-version <MINIMUM_PYTHON_VERSION>
+          Establishes the minimum supported Python Version [default: python3-10] [possible values: python3-6, python3-8, python3-10]
+  -h, --help
+          Print help (see more with '--help')
+  -V, --version
+          Print version
 ```
