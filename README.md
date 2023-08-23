@@ -2,15 +2,17 @@
 
 ![Inspector Gadget introspecting a safe](inspector_gadget.gif)
 
-This is a simple tool that can introspect MySQL or Postgres databases and generate a python file that contains `TypedDict` definitions for the tables and columns in the provided database schema.
+This is a CLI tool that can introspect MySQL or Postgres databases and generate a Python source file that contains `TypedDict` definitions for the tables and columns in the provided database schema.
 
 > [!IMPORTANT]
-> This tool generates Python source code that requires Python >= 3.10 by default.
-> You can use the `--minimum-python-version` (`-p`) flag to change this to `3.6`, `3.8`, or `3.10`.
+> This tool generates Python source code that requires Python >= `3.10` by default.
+
+> [!NOTE]
+> You can use the `--minimum-python-version` (`-p`) flag to change this. See the help documentation below for further clarification.
 
 The intention of this tool is to help make it easier to write type-safe python code that interacts with databases.
 
-If you have some example python code that looks like this:
+If you have some example Python code that looks like this:
 
 ```python
 import psycopg2
@@ -33,7 +35,7 @@ CREATE TABLE users(
 );
 ```
 
-This tool can generate a python file that looks like this:
+This tool can generate a Python file that looks like this:
 
 ```python
 import datetime
