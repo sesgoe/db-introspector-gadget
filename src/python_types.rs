@@ -102,6 +102,16 @@ impl PythonDictProperty {
     }
 }
 
+/// This enum represents whether or not backward-compatible `TypedDict`
+/// syntax is enabled.
+///
+/// It gets enabled for a single `PythonTypedDict` at a time
+/// if the Python dictionary has properties that can't be represented with
+/// valid Python syntax. Current examples of this include:
+///
+/// - If a property name starts with a numeric character
+/// - If a property name contains a space
+/// - If a property name is equal to a Python keyword like 'from'
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub(crate) enum ForcedBackwardCompat {
     Enabled,
@@ -119,7 +129,7 @@ impl From<bool> for ForcedBackwardCompat {
 }
 
 /// Represents a full `TypedDict` definition in Python
-/// ```
+/// ```text
 /// class SomeDictionary(TypedDict):
 ///       ^
 ///       |
@@ -138,16 +148,14 @@ pub(crate) struct PythonTypedDict {
 }
 
 impl PythonTypedDict {
-    /// Outputs a string representation of this `TypedDict` in the Python > 3.8 syntax
+    /// Outputs a Python source string representation of this `TypedDict`
     pub(crate) fn as_typed_dict_class_str(
         &self,
         minimum_python_version: MinimumPythonVersion,
         forced_backward_compat: ForcedBackwardCompat,
     ) -> String {
-        let use_alternate_syntax = matches!(
-            (minimum_python_version, forced_backward_compat),
-            (MinimumPythonVersion::Python3_6, _) | (_, ForcedBackwardCompat::Enabled)
-        );
+        let use_alternate_syntax = minimum_python_version == MinimumPythonVersion::Python3_6
+            || forced_backward_compat == ForcedBackwardCompat::Enabled;
 
         let mut result = if use_alternate_syntax {
             format!("{} = TypedDict('{}', {{\n", self.name, self.name)
@@ -162,12 +170,12 @@ impl PythonTypedDict {
             .map(
                 |(position, property)| match (use_alternate_syntax, position) {
                     (true, Position::Last) | (true, Position::Only) => format!(
-                        "    '{}': {}",
+                        "    '{}': {}", // final property doesn't need a trailing comma
                         property.name,
                         property.as_property_type_str(minimum_python_version)
                     ),
                     (true, _) => format!(
-                        "    '{}': {},",
+                        "    '{}': {},", // first/middle properties need a trailing comma with this syntax
                         property.name,
                         property.as_property_type_str(minimum_python_version)
                     ),
@@ -185,7 +193,7 @@ impl PythonTypedDict {
         result.push('\n');
 
         if use_alternate_syntax {
-            result.push_str("})");
+            result.push_str("})\n");
         }
 
         result
@@ -206,9 +214,17 @@ mod test {
         };
 
         assert_eq!(
+            pdp.as_property_type_str(MinimumPythonVersion::Python3_6),
+            String::from("str")
+        );
+        assert_eq!(
+            pdp.as_property_type_str(MinimumPythonVersion::Python3_8),
+            String::from("str")
+        );
+        assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_10),
             String::from("str")
-        )
+        );
     }
 
     #[test]
@@ -220,9 +236,17 @@ mod test {
         };
 
         assert_eq!(
+            pdp.as_property_type_str(MinimumPythonVersion::Python3_6),
+            String::from("Optional[str]")
+        );
+        assert_eq!(
+            pdp.as_property_type_str(MinimumPythonVersion::Python3_8),
+            String::from("Optional[str]")
+        );
+        assert_eq!(
             pdp.as_property_type_str(MinimumPythonVersion::Python3_10),
             String::from("str | None")
-        )
+        );
     }
 
     #[test]
@@ -236,17 +260,36 @@ mod test {
             }],
         };
 
-        let expected = indoc! {"
-            class TestTable(TypedDict):
-                some_property: str
-        "};
-
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str
+                })
+            "}
+        );
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str
+            "}
+        );
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
                 ForcedBackwardCompat::Disabled
             ),
-            expected
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str
+            "}
         );
     }
 
@@ -268,18 +311,39 @@ mod test {
             ],
         };
 
-        let expected = indoc! {"
-            class TestTable(TypedDict):
-                some_property: str
-                some_other_property: bool
-        "};
-
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': str,
+                    'some_other_property': str
+                })
+            "}
+        );
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str
+                    some_other_property: bool
+            "}
+        );
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
                 ForcedBackwardCompat::Disabled
             ),
-            expected
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str
+                    some_other_property: bool
+            "}
         );
     }
 
@@ -294,17 +358,36 @@ mod test {
             }],
         };
 
-        let expected = indoc! {"
-            class TestTable(TypedDict):
-                some_property: str | None
-        "};
-
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str]
+                })
+            "}
+        );
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: Optional[str]
+            "}
+        );
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
                 ForcedBackwardCompat::Disabled
             ),
-            expected
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str | None
+            "}
         );
     }
 
@@ -326,18 +409,39 @@ mod test {
             ],
         };
 
-        let expected = indoc! {"
-            class TestTable(TypedDict):
-                some_property: str | None
-                some_other_property: str
-        "};
-
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_6,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                TestTable = TypedDict('TestTable', {
+                    'some_property': Optional[str],
+                    'some_other_property': str
+                })
+            "}
+        );
+        assert_eq!(
+            dict.as_typed_dict_class_str(
+                MinimumPythonVersion::Python3_8,
+                ForcedBackwardCompat::Disabled
+            ),
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: Optional[str]
+                    some_other_property: str
+            "}
+        );
         assert_eq!(
             dict.as_typed_dict_class_str(
                 MinimumPythonVersion::Python3_10,
                 ForcedBackwardCompat::Disabled
             ),
-            expected
+            indoc! {"
+                class TestTable(TypedDict):
+                    some_property: str | None
+                    some_other_property: str
+            "}
         );
     }
 
