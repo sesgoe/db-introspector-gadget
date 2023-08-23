@@ -8,7 +8,6 @@ use crate::MinimumPythonVersion;
 pub(crate) enum PythonDataType {
     String,
     Integer,
-    Long,
     Float,
     Boolean,
     DateTime,
@@ -23,7 +22,6 @@ impl PythonDataType {
         match self {
             PythonDataType::String => "str",
             PythonDataType::Integer => "int",
-            PythonDataType::Long => "long",
             PythonDataType::Float => "float",
             PythonDataType::Boolean => "bool",
             PythonDataType::DateTime => "datetime.datetime",
@@ -43,7 +41,7 @@ impl From<String> for PythonDataType {
             //both
             "text" => PythonDataType::String,
             "date" => PythonDataType::Date,
-            "bigint" => PythonDataType::Long,
+            "bigint" => PythonDataType::Integer,
 
             // mysql
             "varchar" | "longtext" | "json" | "char" | "mediumtext" | "enum" | "set" => {
