@@ -1,6 +1,6 @@
 [package]
 name = "db-introspector-gadget"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Ses <jsesgoe@gmail.com>"]
 description = "A MySql and Postgres database introspection tool that generates Python types"
