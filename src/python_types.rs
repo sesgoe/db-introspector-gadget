@@ -44,10 +44,9 @@ impl From<String> for PythonDataType {
             "bigint" => PythonDataType::Integer,
 
             // mysql
-            "varchar" | "longtext" | "json" | "char" | "mediumtext" | "enum" | "set" => {
-                PythonDataType::String
-            }
-            "int" | "smallint" => PythonDataType::Integer,
+            "varchar" | "longtext" | "json" | "char" | "mediumtext" | "enum" | "set"
+            | "tinytext" => PythonDataType::String,
+            "int" | "smallint" | "mediumint" => PythonDataType::Integer,
             "float" | "double" | "decimal" => PythonDataType::Float,
             "tinyint" => PythonDataType::Boolean,
             "datetime" | "timestamp" => PythonDataType::DateTime,
