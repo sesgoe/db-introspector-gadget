@@ -70,6 +70,8 @@ Note: It's a prerequisite that you have `cargo` installed. If you don't, you can
 cargo install db-introspector-gadget
 ```
 
+<https://crates.io/crates/db-introspector-gadget>
+
 ## Sample Outputs
 
 You can check inside the [sample-output](./sample-output/) folder to find a [MySQL](./sample-output/rfam/README.md) and [Postgres](./sample-output/rna-central/README.md) example.
