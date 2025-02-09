@@ -14,6 +14,6 @@ anyhow = "1.0.75"
 clap = { version = "4.3.22", features = ["derive"] }
 convert_case = "0.6.0"
 indoc = "2.0.3"
-itertools = "0.11.0"
+itertools = "0.11"
 sqlx = { version = "0.7.1", features = ["mysql", "postgres", "runtime-tokio-rustls"] }
 tokio = { version = "1.32.0", features = ["full"] }
